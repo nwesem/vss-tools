@@ -114,15 +114,14 @@ class VSSNode(Node):
     ):
         """Creates an VSS Node object from parsed yaml instance represented as a dict.
 
-            Args:
-                name: Name of this VSS instance.
-                source_dict: VSS instance represented as dict from yaml parsing.
-                available_types: Available node types asa string list
-                parent: Optional parent of this node instance.
-                children: Optional children instances of this node.
-                break_on_unknown_attribute: Throw if the node contains attributes not in core VSS specification
-                break_on_name_style_violation: Throw if this node's name is not following
-                                               the VSS standard catalog naming conventions
+        Args:
+            name: Name of this VSS instance.
+            source_dict: VSS instance represented as dict from yaml parsing.
+            available_types: Available node types asa string list
+            parent: Optional parent of this node instance.
+            children: Optional children instances of this node.
+            break_on_unknown_attribute: Throw if the node contains attributes not in core VSS specification
+            break_on_name_style_vioation: Throw if this node's name is not follwing th VSS recommended style
 
         Returns:
             VSSNode object according to the Vehicle Signal Specification.
@@ -248,17 +247,29 @@ class VSSNode(Node):
         this conventions can still be a valid model.
 
         """
-        if self.is_signal() and self.datatype == VSSDataType.BOOLEAN and not self.name.startswith("Is"):
+        camel_regexp = re.compile("[A-Z][A-Za-z0-9]*$")
+        if (
+            self.is_signal()
+            and self.datatype == VSSDataType.BOOLEAN
+            and not self.name.startswith("Is")
+        ):
             raise NameStyleValidationException(
-                (f'Boolean node "{self.name}" found in file "{sourcefile}" '
-                 'is not following VSS standard catalog naming conventions.'))
+                (
+                    f'Boolean node "{self.name}" found in file "{sourcefile}" is not following naming conventions. ',
+                    'It is recommended that boolean nodes start with "Is".',
+                )
+            )
 
         camel_regexp = re.compile('[A-Z][A-Za-z0-9]*$')
         # relax camel case requirement for struct properties
         if not self.is_property() and not camel_regexp.match(self.name):
             raise NameStyleValidationException(
-                (f'Node "{self.name}" found in file "{sourcefile}" '
-                 'is not following VSS standard catalog naming conventions.'))
+                (
+                    f'Node "{self.name}" found in file "{sourcefile}" is not following naming conventions. ',
+                    "It is recommended that node names use camel case, starting with a capital letter, ",
+                    "only using letters A-z and numbers 0-9.",
+                )
+            )
 
     def base_data_type_str(self) -> str:
         """
