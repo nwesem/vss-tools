@@ -6,13 +6,17 @@ repos:
     hooks:
     -   id: trailing-whitespace
         exclude_types: ["csv", "proto"]
+        exclude: obsolete/
     -   id: end-of-file-fixer
         exclude_types: ["json", "proto"]
-        exclude: ".*\\.[fidl|jsonschema]"
+        exclude: ".*\\.[fidl|jsonschema]|obsolete/"
     -   id: check-yaml
+        exclude: obsolete/
     -   id: check-added-large-files
+        exclude: obsolete/
 
 -   repo: https://github.com/pycqa/flake8
     rev: '7.0.0'
     hooks:
     -   id: flake8
+        exclude: obsolete/

@@ -42,7 +42,7 @@ type Vehicle_VehicleIdentification_Brand {
 }
 ```
 
-Every leaf has a timestamp. This is supposed to contain the date of the last modification of the value. 
+Every leaf has a timestamp. This is supposed to contain the date of the last modification of the value.
 Queries can then filter data that has been recorded after a given timestamp.
 
 ### Additional leaf parameters
