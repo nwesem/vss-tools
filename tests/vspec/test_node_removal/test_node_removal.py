@@ -33,9 +33,11 @@ import vspec2yaml  # noqa: F401
 
 def get_cla(test_file: str, out_file: str, overlay: Optional[str]):
     if overlay:
-        return test_file + " " + out_file + " -o " + overlay
+        return (
+                test_file + " " + out_file + " -o " + overlay + " -u ../test_units.yaml"
+        )
     else:
-        return test_file + " " + out_file
+        return test_file + " " + out_file + " -u ../test_units.yaml"
 
 
 # FIXTURES

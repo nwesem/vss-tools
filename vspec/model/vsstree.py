@@ -230,16 +230,6 @@ class VSSNode(Node):
             )
             sys.exit(-1)
 
-        self.check_for_removal()
-
-    def check_for_removal(self):
-        """Caution uses base node as input."""
-        for node in LevelOrderIter(self):
-            if node.delete:
-                logging.info(f"Node {node.qualified_name()} will now be deleted.")
-                node.parent = None
-                node.children = []
-
     def validate_name_style(self, sourcefile):
         """Checks wether this node is adhering to VSS style conventions.
 
@@ -437,8 +427,6 @@ class VSSNode(Node):
 
         self.source_dict.update(other.source_dict)
         self.unpack_source_dict()
-
-        self.check_for_removal()
 
     def validate_and_set_datatype(self):
         """
