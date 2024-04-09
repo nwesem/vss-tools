@@ -19,7 +19,6 @@ from anytree import (  # type: ignore[import]
     Node,
     RenderTree,
     Resolver,
-    LevelOrderIter,
 )
 
 from .constants import VSSDataType, VSSType, VSSUnit, VSSUnitCollection
