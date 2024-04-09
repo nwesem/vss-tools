@@ -19,6 +19,7 @@ from anytree import (  # type: ignore[import]
     Node,
     RenderTree,
     Resolver,
+    LevelOrderIter,
 )
 
 from .constants import VSSDataType, VSSType, VSSUnit, VSSUnitCollection
@@ -229,13 +230,15 @@ class VSSNode(Node):
             )
             sys.exit(-1)
 
-        if self.is_deleted():
-            logging.info(f"Node {self.qualified_name()} is marked for deletion.")
-            for child in self.children:
-                child.delete = True
-                del child
-            self.parent = None
-            self.children = []
+        self.check_for_removal()
+
+    def check_for_removal(self):
+        """Caution uses base node as input."""
+        for node in LevelOrderIter(self):
+            if node.delete:
+                logging.info(f"Node {node.qualified_name()} will now be deleted.")
+                node.parent = None
+                node.children = []
 
     def validate_name_style(self, sourcefile):
         """Checks wether this node is adhering to VSS style conventions.
@@ -326,15 +329,6 @@ class VSSNode(Node):
         if self.is_branch() or self.is_struct():
             return self.is_leaf
         return False
-
-    def is_deleted(self) -> bool:
-        """Checks if this node is marked for deletion.
-
-        Return:
-            True if this node is marked for deletion
-        """
-        self.delete = self.source_dict.get("delete", False)
-        return self.delete
 
     def get_struct_qualified_name(self, struct_name) -> Optional[str]:
         """
@@ -443,6 +437,8 @@ class VSSNode(Node):
 
         self.source_dict.update(other.source_dict)
         self.unpack_source_dict()
+
+        self.check_for_removal()
 
     def validate_and_set_datatype(self):
         """
