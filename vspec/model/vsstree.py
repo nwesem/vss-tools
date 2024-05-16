@@ -77,8 +77,8 @@ class VSSNode(Node):
 
     unit: Optional[VSSUnit] = None
 
-    min = ""
-    max = ""
+    min: int | None = None
+    max: int | None = None
     allowed = ""
     instantiate = True
 

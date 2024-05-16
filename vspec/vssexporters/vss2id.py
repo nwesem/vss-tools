@@ -52,8 +52,8 @@ def generate_split_id(
         node.type.value,
         node.get_unit(),
         node.allowed,
-        node.min,
-        node.max,
+        node.min if node.min is not None else "",
+        node.max if node.max is not None else "",
         strict_mode,
     )
     hashed_str = format(fnv1_32_hash(identifier), "08X")
@@ -109,9 +109,9 @@ def export_node(yaml_dict, node, id_counter, strict_mode: bool) -> Tuple[int, in
         yaml_dict[node_path]["datatype"] = node.data_type_str
     if node.allowed:
         yaml_dict[node_path]["allowed"] = node.allowed
-    if node.min:
+    if node.min is not None:
         yaml_dict[node_path]["min"] = node.min
-    if node.max:
+    if node.max is not None:
         yaml_dict[node_path]["max"] = node.max
 
     if node.fka:
