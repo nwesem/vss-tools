@@ -57,10 +57,7 @@ def validate_static_uids(
             for fka_val in v["fka"]:
                 old_static_uid = "0x" + fnv1_32_wrapper(fka_val, v, strict_mode)
                 for i, validation_node in enumerate(validation_tree_nodes):
-                    if (
-                        old_static_uid
-                        == validation_node.extended_attributes["staticUID"]
-                    ):
+                    if old_static_uid == validation_node.staticUID:
                         logging.warning(
                             f"[Validation] SEMANTIC NAME CHANGE or PATH CHANGE for '{k}', "
                             f"it used to be '{validation_node.qualified_name()}'."
@@ -103,7 +100,7 @@ def validate_static_uids(
         for key, value in signals_dict.items():
             matched_uids = []
             for id_validation_tree, other_node in enumerate(validation_tree_nodes):
-                if value["staticUID"] == other_node.extended_attributes["staticUID"]:
+                if value["staticUID"] == other_node.staticUID:
                     if key != other_node.qualified_name():
                         _ = check_semantics(key, value, config.strict_mode)
                     matched_uids.append((key, id_validation_tree))
