@@ -29,12 +29,21 @@ def check_expected_for_tool(signal_name: str, grep_str: str, tool_path: str):
     assert os.WEXITSTATUS(result) == 0
 
 
-def check_expected(signal_name: str, grep_str: str):
-    check_expected_for_tool(signal_name, grep_str, "./ctestparser")
-    check_expected_for_tool(signal_name, grep_str, "../../binary/go_parser/gotestparser")
-
-
-def test_binary(change_test_dir):
+@pytest.mark.parametrize(
+    "signal_name, grep_str",
+    [
+        ("A.String", "Node type=SENSOR"),
+        ("A.Int", "Node type=ACTUATOR"),
+    ],
+)
+@pytest.mark.parametrize(
+    "tool_path",
+    [
+        "./ctestparser",
+        "../../binary/go_parser/gotestparser",
+    ],
+)
+def test_binary(change_test_dir, signal_name: str, grep_str: str, tool_path: str):
     """
     Tests binary tools by generating binary file and using test parsers to interpret them and request
     some basic information.
@@ -60,8 +69,7 @@ def test_binary(change_test_dir):
     assert os.WEXITSTATUS(result) == 0
     os.system("cd -")
 
-    check_expected('A.String', 'Node type=SENSOR')
-    check_expected('A.Int', 'Node type=ACTUATOR')
+    check_expected_for_tool(signal_name, grep_str, tool_path)
 
     os.system("rm -f test.binary ctestparser out.txt")
     os.system("rm -f ../../binary/go_parser/gotestparser  ../../binary/go_parser/out.txt")
