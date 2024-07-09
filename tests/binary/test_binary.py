@@ -17,9 +17,9 @@ def change_test_dir(request, monkeypatch):
     monkeypatch.chdir(request.fspath.dirname)
 
 
-def check_expected_for_tool(signal_name: str, grep_str: str, tool_path: str):
+def check_expected_for_tool(signal_name: str, grep_str: str, tool_path: str, test_id: str = ""):
 
-    test_str = "printf '%s\n' 'm' " + signal_name + "  '1' 'q' | " + tool_path + " test.binary > out.txt"
+    test_str = "printf '%s\n' 'm' " + signal_name + "  '1' 'q' | " + tool_path + " test" + test_id + ".binary > out.txt"
     result = os.system(test_str)
     assert os.WIFEXITED(result)
     assert os.WEXITSTATUS(result) == 0
@@ -30,10 +30,12 @@ def check_expected_for_tool(signal_name: str, grep_str: str, tool_path: str):
 
 
 @pytest.mark.parametrize(
-    "signal_name, grep_str",
+    "signal_name, grep_str, test_id",
     [
-        ("A.String", "Node type=SENSOR"),
-        ("A.Int", "Node type=ACTUATOR"),
+        ("A.String", "Node type=SENSOR", ""),
+        ("A.Int", "Node type=ACTUATOR", ""),
+        ("A.String", "Node type=SENSOR", "_id"),
+        ("A.Int", "Node type=ACTUATOR", "_id"),
     ],
 )
 @pytest.mark.parametrize(
@@ -43,7 +45,7 @@ def check_expected_for_tool(signal_name: str, grep_str: str, tool_path: str):
         "../../binary/go_parser/gotestparser",
     ],
 )
-def test_binary(change_test_dir, signal_name: str, grep_str: str, tool_path: str):
+def test_binary(change_test_dir, signal_name: str, grep_str: str, tool_path: str, test_id: str):
     """
     Tests binary tools by generating binary file and using test parsers to interpret them and request
     some basic information.
@@ -54,6 +56,16 @@ def test_binary(change_test_dir, signal_name: str, grep_str: str, tool_path: str
     assert os.WEXITSTATUS(result) == 0
 
     test_str = "vspec2binary -u ../vspec/test_units.yaml test.vspec test.binary"
+    result = os.system(test_str)
+    assert os.WIFEXITED(result)
+    assert os.WEXITSTATUS(result) == 0
+    
+    # test static UIDs
+    test_str = "vspec2id -u ../vspec/test_units.yaml test.vspec test_id.vspec"
+    result = os.system(test_str)
+    assert os.WIFEXITED(result)
+    assert os.WEXITSTATUS(result) == 0
+    test_str = "vspec2binary -u ../vspec/test_units.yaml test_id.vspec test_id.binary"
     result = os.system(test_str)
     assert os.WIFEXITED(result)
     assert os.WEXITSTATUS(result) == 0
@@ -69,7 +81,7 @@ def test_binary(change_test_dir, signal_name: str, grep_str: str, tool_path: str
     assert os.WEXITSTATUS(result) == 0
     os.system("cd -")
 
-    check_expected_for_tool(signal_name, grep_str, tool_path)
+    check_expected_for_tool(signal_name, grep_str, tool_path, test_id)
 
-    os.system("rm -f test.binary ctestparser out.txt")
+    os.system("rm -f test.binary test_id.vspec test_id.binary ctestparser out.txt")
     os.system("rm -f ../../binary/go_parser/gotestparser  ../../binary/go_parser/out.txt")
