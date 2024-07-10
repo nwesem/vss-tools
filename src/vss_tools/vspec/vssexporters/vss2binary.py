@@ -23,10 +23,24 @@ out_file = ""
 _cbinary = None
 
 
-def createBinaryCnode(fname, nodename, nodetype, uuid, description, nodedatatype, nodemin, nodemax, unit, allowed,
+class extendedAttr_t(ctypes.Structure):
+    _fields_ = [
+        ("nameLen", ctypes.c_uint8),
+        ("name", ctypes.c_char_p),
+        ("valueLen", ctypes.c_uint8),
+        ("value", ctypes.c_char_p),
+    ]
+
+class nodeHeader_t(ctypes.Structure):
+    _fields_ = [
+        ("amountExtendedAttr", ctypes.c_uint8),
+        ("extendedAttr", ctypes.POINTER(extendedAttr_t)),
+    ]
+
+def createBinaryCnode(fname, header, nodename, nodetype, uuid, description, nodedatatype, nodemin, nodemax, unit, allowed,
                       defaultAllowed, validate, children):
     global _cbinary
-    _cbinary.createBinaryCnode(fname, nodename, nodetype, uuid, description, nodedatatype, nodemin, nodemax, unit,
+    _cbinary.createBinaryCnode(fname, header, nodename, nodetype, uuid, description, nodedatatype, nodemin, nodemax, unit,
                                allowed, defaultAllowed, validate, children)
 
 
@@ -53,6 +67,18 @@ def intToHexChar(hexInt):
 
 
 def export_node(node, generate_uuid, out_file):
+    header = nodeHeader_t()
+    header.amountExtendedAttr = len(node.extended_attributes.keys())
+
+    for key, value in node.extended_attributes.items():
+        print(f"[python]\t{key=}, {value=}")
+        extended_attr = extendedAttr_t()
+        extended_attr.nameLen = len(str(key))
+        extended_attr.name = str(key).encode('utf-8')
+        extended_attr.valueLen = len(str(value))
+        extended_attr.value = str(value).encode('utf-8')
+        header.extendedAttr = ctypes.pointer(extended_attr)
+
     nodename = str(node.name)
     b_nodename = nodename.encode('utf-8')
 
@@ -111,7 +137,9 @@ def export_node(node, generate_uuid, out_file):
 
     b_fname = out_file.encode('utf-8')
 
-    createBinaryCnode(b_fname, b_nodename, b_nodetype, b_nodeuuid, b_nodedescription, b_nodedatatype, b_nodemin,
+    print(f"[python]\t{header.amountExtendedAttr=}")
+
+    createBinaryCnode(b_fname, header, b_nodename, b_nodetype, b_nodeuuid, b_nodedescription, b_nodedatatype, b_nodemin,
                       b_nodemax, b_nodeunit, b_nodeallowed, b_nodedefault, b_nodevalidate, children)
 
     for child in node.children:
@@ -136,10 +164,22 @@ class Vss2Binary(Vss2X):
             return
         _cbinary = ctypes.CDLL(dllAbsPath)
 
-        _cbinary.createBinaryCnode.argtypes = (ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p,
-                                               ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p,
-                                               ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p,
-                                               ctypes.c_int)
+        _cbinary.createBinaryCnode.argtypes = (
+            ctypes.c_char_p, # fname
+            nodeHeader_t,  # header
+            ctypes.c_char_p, # nodename
+            ctypes.c_char_p, # nodetype
+            ctypes.c_char_p, # uuid
+            ctypes.c_char_p, # description
+            ctypes.c_char_p, # nodedatatype
+            ctypes.c_char_p, # nodemin
+            ctypes.c_char_p, # nodemax
+            ctypes.c_char_p, # unit
+            ctypes.c_char_p, # allowed
+            ctypes.c_char_p, # defaultAllowed
+            ctypes.c_char_p, # validate
+            ctypes.c_int  # children
+        )
 
         logging.info("Generating binary output...")
         out_file = config.output_file

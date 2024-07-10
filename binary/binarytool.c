@@ -17,10 +17,15 @@
 #include <stdbool.h>
 #include <limits.h>
 
+#include "c_parser/utils.h"
+
 FILE* treeFp;
 
-void writeNodeData(char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, char* validate, int children) {
-//printf("Name=%s, Type=%s, uuid=%s, validate=%s, children=%d, Descr=%s, datatype=%s, min=%s, max=%s Unit=%s, Allowed=%s\n", name, type, uuid, validate, children, descr, datatype, min, max, unit, allowed);
+void writeNodeData(nodeHeader_t header, char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, char* validate, int children) {
+// printf("Header.amountExtendedAttribute=%d, Name=%s, Type=%s, uuid=%s, validate=%s, children=%d, Descr=%s, datatype=%s, min=%s, max=%s Unit=%s, Allowed=%s\n", header.amountOfExtendedAttr, name, type, uuid, validate, children, descr, datatype, min, max, unit, allowed);
+    printf("[binarytool]\tHeader.amountExtended=%d\n", header.amountExtendedAttr);
+    printf("[binarytool]\tHeader.extendedAttr.name=%s and len(name)=%d\n", header.extendedAttr->name, header.extendedAttr->nameLen);
+    printf("[binarytool]\tHeader.extendedAttr.value=%s and len(value)=%d\n", header.extendedAttr->value, header.extendedAttr->valueLen);
     uint8_t nameLen  = (uint8_t)strlen(name);
     uint8_t typeLen = (uint8_t)strlen(type);
     uint8_t uuidLen  = (uint8_t)strlen(uuid);
@@ -33,6 +38,8 @@ void writeNodeData(char* name, char* type, char* uuid, char* descr, char* dataty
     uint8_t defaultAllowedLen = (uint8_t)strlen(defaultAllowed);
     uint8_t validateLen = (uint8_t)strlen(validate);
     
+    fwrite(&header, sizeof(nodeHeader_t), 1, treeFp);
+
     fwrite(&nameLen, sizeof(uint8_t), 1, treeFp);
     fwrite(name, sizeof(char)*nameLen, 1, treeFp);
     fwrite(&typeLen, sizeof(uint8_t), 1, treeFp);
@@ -72,13 +79,13 @@ void writeNodeData(char* name, char* type, char* uuid, char* descr, char* dataty
     fwrite(&children, sizeof(uint8_t), 1, treeFp);
 }
 
-void createBinaryCnode(char*fname, char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, char* validate, int children) {
+void createBinaryCnode(char*fname, nodeHeader_t header, char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, char* validate, int children) {
     treeFp = fopen(fname, "a");
     if (treeFp == NULL) {
         printf("Could not open file=%s for writing of tree.\n", fname);
         return;
     }
-    writeNodeData(name, type, uuid, descr, datatype, min, max, unit, allowed, defaultAllowed, validate, children);
+    writeNodeData(header, name, type, uuid, descr, datatype, min, max, unit, allowed, defaultAllowed, validate, children);
     fclose(treeFp);
 }
 

@@ -350,6 +350,9 @@ char* extractAllowedElement(char* allowedBuf, int elemIndex) {
 }
 
 void populateNode(node_t* thisNode) {
+
+	ret = fread((&thisNode->header), sizeof(nodeHeader_t), 1, treeFp);
+
 	ret = fread(&(thisNode->nameLen), sizeof(uint8_t), 1, treeFp);
 	thisNode->name = (char*) malloc(sizeof(char)*(thisNode->nameLen+1));
 	ret = fread(thisNode->name, sizeof(char)*thisNode->nameLen, 1, treeFp);
@@ -455,6 +458,9 @@ void allowedWrite(char* theAllowed) {
 }
 
 void writeNode(struct node_t* node) {
+
+	fwrite(&(node->header), sizeof(nodeHeader_t), 1, treeFp);
+
 	fwrite(&(node->nameLen), sizeof(uint8_t), 1, treeFp);
 	fwrite(node->name, sizeof(char)*node->nameLen, 1, treeFp);
 
@@ -752,4 +758,8 @@ char* VSSgetUnit(long nodeHandle) {
 	if (type != BRANCH && type != STRUCT)
 		return ((node_t*)((intptr_t)nodeHandle))->unit;
 	return NULL;
+}
+
+nodeHeader_t VSSgetHeader(long nodeHandle) {
+	return ((nodeHeader_t)((node_t*)((intptr_t)nodeHandle))->header);
 }
