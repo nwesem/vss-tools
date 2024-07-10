@@ -68,7 +68,6 @@ class VSSNode(Node):
         "arraysize",
         "comment",
         "$file_name$",
-        "staticUID",
         "fka",
         "delete",
         "constUID",
@@ -94,7 +93,6 @@ class VSSNode(Node):
     deprecation = ""
     fka = ""
     delete: bool = False
-    staticUID: str | None = None
     constUID: str | None = None
 
     # Reference nodes for using definitions from previously existing
