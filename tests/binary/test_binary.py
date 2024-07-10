@@ -59,7 +59,7 @@ def test_binary(change_test_dir, signal_name: str, grep_str: str, tool_path: str
     result = os.system(test_str)
     assert os.WIFEXITED(result)
     assert os.WEXITSTATUS(result) == 0
-
+    
     # test static UIDs
     test_str = "vspec2id -u ../vspec/test_units.yaml test.vspec test_id.vspec"
     result = os.system(test_str)

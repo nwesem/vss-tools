@@ -370,16 +370,13 @@ func populateNode(thisNode *def.Node_t) {
 	DefaultLen := deSerializeUInt(readBytes(1)).(uint8)
 	thisNode.DefaultAllowed = string(readBytes((uint32)(DefaultLen)))
 
-	StaticUIDLen := deSerializeUInt(readBytes(1)).(uint8)
-	thisNode.StaticUID = string(readBytes((uint32)(StaticUIDLen)))
-
 	ValidateLen := deSerializeUInt(readBytes(1)).(uint8)
 	Validate := string(readBytes((uint32)(ValidateLen)))
 	thisNode.Validate = def.ValidateToInt(Validate)
 
 	thisNode.Children = deSerializeUInt(readBytes(1)).(uint8)
 
-	// fmt.Printf("populateNode: %s\n", thisNode.Name)
+//	fmt.Printf("populateNode: %s\n", thisNode.Name)
 }
 
 // The reading order must be synchronized with the writing order in the binary tool
@@ -695,8 +692,4 @@ func VSSgetUnit(nodeHandle *def.Node_t) string {
 		return nodeHandle.Unit
 	}
 	return ""
-}
-
-func VSSgetStaticUID(nodeHandle *def.Node_t) string {
-	return nodeHandle.StaticUID
 }
