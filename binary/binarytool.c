@@ -23,23 +23,7 @@ FILE* treeFp;
 
 void writeNodeData(nodeHeader_t header, char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, char* validate, int children) {
 // printf("Header.amountExtendedAttribute=%d, Name=%s, Type=%s, uuid=%s, validate=%s, children=%d, Descr=%s, datatype=%s, min=%s, max=%s Unit=%s, Allowed=%s\n", header.amountOfExtendedAttr, name, type, uuid, validate, children, descr, datatype, min, max, unit, allowed);
-    // printf("[binarytool]\tHeader.amountExtended=%d", header.amountExtendedAttr);
-    // printf(", Header.extendedAttr.name=%s", header.extendedAttr->name);
-    // printf(", Header.extendedAttr.value=%s\n", header.extendedAttr->value);
-
-    for (int i = 0; i < header.amountExtendedAttr; i++) {
-        printf("[binarytool]\tHeader.amountExtended=%d", header.amountExtendedAttr);
-        printf(", Header.extendedAttr.name=%s", header.extendedAttr->name);
-        printf(", Header.extendedAttr.value=%s\n", header.extendedAttr->value);
-        // if (i>0) {
-
-        // }
-        // if (header.extendedAttr->next != NULL) {
-        //     printf("never reached\n");
-        header.extendedAttr = header.extendedAttr->next;
-        // }
-    }
-
+    
     uint8_t nameLen  = (uint8_t)strlen(name);
     uint8_t typeLen = (uint8_t)strlen(type);
     uint8_t uuidLen  = (uint8_t)strlen(uuid);
@@ -52,7 +36,22 @@ void writeNodeData(nodeHeader_t header, char* name, char* type, char* uuid, char
     uint8_t defaultAllowedLen = (uint8_t)strlen(defaultAllowed);
     uint8_t validateLen = (uint8_t)strlen(validate);
     
-    fwrite(&header, sizeof(nodeHeader_t), 1, treeFp);
+    for (int i = 0; i < header.amountExtendedAttr; i++) {
+    //     // printf("[binarytool]\tHeader.amountExtended=%d", header.amountExtendedAttr);
+    //     // printf(", Header.extendedAttr.name=%s", header.extendedAttr->name);
+    //     // printf(", Header.extendedAttr.value=%s\n", header.extendedAttr->value);
+        
+    //     if (header.extendedAttr->next != NULL) {
+    //         header.extendedAttr = header.extendedAttr->next;
+    //     }
+    }
+
+    uint8_t headerLen = sizeof(nodeHeader_t) + header.amountExtendedAttr * sizeof(struct extendedAttr_t);
+    // printf("size of header=%ld, size of extended attr=%ld\n", sizeof(nodeHeader_t), sizeof(struct extendedAttr_t));
+    // printf("HeaderLen=%d\n", headerLen);
+    fwrite(&headerLen, sizeof(uint8_t), 1, treeFp);
+    fwrite(&header, sizeof(uint8_t)*headerLen, 1, treeFp);
+
 
     fwrite(&nameLen, sizeof(uint8_t), 1, treeFp);
     fwrite(name, sizeof(char)*nameLen, 1, treeFp);

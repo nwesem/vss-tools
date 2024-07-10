@@ -351,7 +351,15 @@ char* extractAllowedElement(char* allowedBuf, int elemIndex) {
 
 void populateNode(node_t* thisNode) {
 
-	ret = fread((&thisNode->header), sizeof(nodeHeader_t), 1, treeFp);
+	ret = fread(&thisNode->headerLen, sizeof(uint8_t), 1, treeFp);
+	printf("headerLen = %d\n", thisNode->headerLen);
+	char* headerStr = (char*) malloc(sizeof(char)*(thisNode->headerLen+1)); 
+	ret = fread(headerStr, sizeof(char)*(thisNode->headerLen), 1, treeFp);
+	headerStr[thisNode->headerLen] = '\0';
+
+	printf("header = %s\n", headerStr);
+	// printf("header ext attr name = %s\n", header->extendedAttr->name);
+	free(headerStr);
 
 	ret = fread(&(thisNode->nameLen), sizeof(uint8_t), 1, treeFp);
 	thisNode->name = (char*) malloc(sizeof(char)*(thisNode->nameLen+1));
@@ -459,7 +467,8 @@ void allowedWrite(char* theAllowed) {
 
 void writeNode(struct node_t* node) {
 
-	fwrite(&(node->header), sizeof(nodeHeader_t), 1, treeFp);
+	fwrite(&(node->headerLen), sizeof(uint8_t), 1, treeFp);
+	fwrite(node->header, sizeof(char) * node->headerLen, 1, treeFp);
 
 	fwrite(&(node->nameLen), sizeof(uint8_t), 1, treeFp);
 	fwrite(node->name, sizeof(char)*node->nameLen, 1, treeFp);
@@ -760,6 +769,6 @@ char* VSSgetUnit(long nodeHandle) {
 	return NULL;
 }
 
-nodeHeader_t VSSgetHeader(long nodeHandle) {
-	return ((nodeHeader_t)((node_t*)((intptr_t)nodeHandle))->header);
+nodeHeader_t* VSSgetHeader(long nodeHandle) {
+	return ((nodeHeader_t*)((node_t*)((intptr_t)nodeHandle))->header);
 }

@@ -43,8 +43,7 @@ char* getTypeName(nodeTypes_t type) {
 }
 
 void showNodeData(long currentNode, int currentChild) {
-        printf("\nHeader.amountExtendedAttr = %d, Node: name = %s, type = %s, uuid = %s, validate = %d, children = %d,\ndescription = %s\n", 
-            VSSgetHeader(currentNode).amountExtendedAttr,
+        printf("\nNode: name = %s, type = %s, uuid = %s, validate = %d, children = %d,\ndescription = %s\n", 
             VSSgetName(currentNode),
             getTypeName(VSSgetType(currentNode)),
             VSSgetUUID(currentNode),
@@ -52,6 +51,17 @@ void showNodeData(long currentNode, int currentChild) {
             VSSgetNumOfChildren(currentNode),
             VSSgetDescr(currentNode)
         );
+        // if (VSSgetHeader(currentNode)->amountExtendedAttr > 0) {
+        //     printf("Extended attributes: %d\n", VSSgetHeader(currentNode)->amountExtendedAttr);
+        //     struct extendedAttr_t* extAttr = VSSgetHeader(currentNode)->extendedAttr;
+        //     char* name = VSSgetHeader(currentNode)->extendedAttr->name;
+        //     printf("\t%s\n", name);
+        //     // for (int i = 0 ; i < VSSgetHeader(currentNode).amountExtendedAttr ; i++) {
+        //     //     printf("Name=%s, Value=%s\n", extAttr->name, extAttr->value);
+        //     //     // extAttr = extAttr->next;
+        //     //     break;
+        //     // }
+        // }
 
         if (VSSgetNumOfChildren(currentNode) > 0)
             printf("Node child[%d]=%s\n", currentChild, VSSgetName(VSSgetChild(currentNode, currentChild)));

@@ -22,7 +22,6 @@ from vss_tools.vspec.vspec2vss_config import Vspec2VssConfig
 out_file = ""
 _cbinary = None
 
-
 class extendedAttr_t(ctypes.Structure):  # forward declaration
     pass
 
@@ -71,36 +70,20 @@ def export_node(node, generate_uuid, out_file):
     header = nodeHeader_t()
     header.amountExtendedAttr = len(node.extended_attributes.keys())
 
-    # extended_attributes: list = []
-    # for key, value in node.extended_attributes.items():
-    #     # print(f"[python]\t{key=}, {value=}")
-    #     extended_attr = extendedAttr_t()
-    #     extended_attr.name = str(key).encode('utf-8')
-    #     extended_attr.value = str(value).encode('utf-8')
-    #     extendedAttr_t.next = None
-    #     extended_attributes.append(extended_attr)
+    # CAUTION: list initialization is important here, otherwise the pointers will be invalid,
+    #  it has to be expliclity named extendedAttr_t also quick initilization like 3 * [extendedAttr_t()] 
+    #  will not work.
+    #  The goal was to use initialize it with amountExtendedAttr * [extendedAttr_t()] but didnt work
+    extended_attributes: list = [extendedAttr_t(), extendedAttr_t(), extendedAttr_t()]
+    for i, (key, value) in enumerate(node.extended_attributes.items()):
+        extended_attributes[i].name = str(key).encode('utf-8')
+        extended_attributes[i].value = str(value).encode('utf-8')
+        if header.amountExtendedAttr > 1 and i < 1:
+            extended_attributes[i].next = ctypes.pointer(extended_attributes[i + 1])
+        else:
+            extendedAttr_t.next = None
 
-    # for i in range(0, header.amountExtendedAttr):
-        
-    #     if i < (header.amountExtendedAttr - 1):
-    #         print(f"{i=} assigned next for node {node.name} and next attribute {extended_attributes[i+1].name}")
-    #         extended_attributes[i].next = ctypes.pointer(extended_attributes[i + 1])
-    #         # extended_attributes[i] = extended_attributes[i].next[0]
-    #     else:
-    #         extended_attributes[i].next = None  # null pointer
-
-    ex_attr_suid = extendedAttr_t() 
-    ex_attr_suid.name = str("staticUID").encode('utf-8')
-    ex_attr_suid.value = str(node.extended_attributes["staticUID"]).encode('utf-8')
-
-    ex_attr_val = extendedAttr_t()
-    ex_attr_val.name = str("validate").encode('utf-8')
-    ex_attr_val.value = str(node.extended_attributes["validate"]).encode('utf-8')
-
-    ex_attr_suid.next = ctypes.pointer(ex_attr_val)
-
-    header.extendedAttr = ctypes.pointer(ex_attr_suid)
-
+    header.extendedAttr = ctypes.pointer(extended_attributes[0])
 
     nodename = str(node.name)
     b_nodename = nodename.encode('utf-8')
