@@ -23,9 +23,23 @@ FILE* treeFp;
 
 void writeNodeData(nodeHeader_t header, char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, char* validate, int children) {
 // printf("Header.amountExtendedAttribute=%d, Name=%s, Type=%s, uuid=%s, validate=%s, children=%d, Descr=%s, datatype=%s, min=%s, max=%s Unit=%s, Allowed=%s\n", header.amountOfExtendedAttr, name, type, uuid, validate, children, descr, datatype, min, max, unit, allowed);
-    printf("[binarytool]\tHeader.amountExtended=%d\n", header.amountExtendedAttr);
-    printf("[binarytool]\tHeader.extendedAttr.name=%s and len(name)=%d\n", header.extendedAttr->name, header.extendedAttr->nameLen);
-    printf("[binarytool]\tHeader.extendedAttr.value=%s and len(value)=%d\n", header.extendedAttr->value, header.extendedAttr->valueLen);
+    // printf("[binarytool]\tHeader.amountExtended=%d", header.amountExtendedAttr);
+    // printf(", Header.extendedAttr.name=%s", header.extendedAttr->name);
+    // printf(", Header.extendedAttr.value=%s\n", header.extendedAttr->value);
+
+    for (int i = 0; i < header.amountExtendedAttr; i++) {
+        printf("[binarytool]\tHeader.amountExtended=%d", header.amountExtendedAttr);
+        printf(", Header.extendedAttr.name=%s", header.extendedAttr->name);
+        printf(", Header.extendedAttr.value=%s\n", header.extendedAttr->value);
+        // if (i>0) {
+
+        // }
+        // if (header.extendedAttr->next != NULL) {
+        //     printf("never reached\n");
+        header.extendedAttr = header.extendedAttr->next;
+        // }
+    }
+
     uint8_t nameLen  = (uint8_t)strlen(name);
     uint8_t typeLen = (uint8_t)strlen(type);
     uint8_t uuidLen  = (uint8_t)strlen(uuid);

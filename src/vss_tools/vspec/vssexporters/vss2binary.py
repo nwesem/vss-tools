@@ -23,13 +23,14 @@ out_file = ""
 _cbinary = None
 
 
-class extendedAttr_t(ctypes.Structure):
-    _fields_ = [
-        ("nameLen", ctypes.c_uint8),
-        ("name", ctypes.c_char_p),
-        ("valueLen", ctypes.c_uint8),
-        ("value", ctypes.c_char_p),
-    ]
+class extendedAttr_t(ctypes.Structure):  # forward declaration
+    pass
+
+extendedAttr_t._fields_ = [
+    ("name", ctypes.c_char_p),
+    ("value", ctypes.c_char_p),
+    ("next", ctypes.POINTER(extendedAttr_t)),
+]
 
 class nodeHeader_t(ctypes.Structure):
     _fields_ = [
@@ -70,14 +71,36 @@ def export_node(node, generate_uuid, out_file):
     header = nodeHeader_t()
     header.amountExtendedAttr = len(node.extended_attributes.keys())
 
-    for key, value in node.extended_attributes.items():
-        print(f"[python]\t{key=}, {value=}")
-        extended_attr = extendedAttr_t()
-        extended_attr.nameLen = len(str(key))
-        extended_attr.name = str(key).encode('utf-8')
-        extended_attr.valueLen = len(str(value))
-        extended_attr.value = str(value).encode('utf-8')
-        header.extendedAttr = ctypes.pointer(extended_attr)
+    # extended_attributes: list = []
+    # for key, value in node.extended_attributes.items():
+    #     # print(f"[python]\t{key=}, {value=}")
+    #     extended_attr = extendedAttr_t()
+    #     extended_attr.name = str(key).encode('utf-8')
+    #     extended_attr.value = str(value).encode('utf-8')
+    #     extendedAttr_t.next = None
+    #     extended_attributes.append(extended_attr)
+
+    # for i in range(0, header.amountExtendedAttr):
+        
+    #     if i < (header.amountExtendedAttr - 1):
+    #         print(f"{i=} assigned next for node {node.name} and next attribute {extended_attributes[i+1].name}")
+    #         extended_attributes[i].next = ctypes.pointer(extended_attributes[i + 1])
+    #         # extended_attributes[i] = extended_attributes[i].next[0]
+    #     else:
+    #         extended_attributes[i].next = None  # null pointer
+
+    ex_attr_suid = extendedAttr_t() 
+    ex_attr_suid.name = str("staticUID").encode('utf-8')
+    ex_attr_suid.value = str(node.extended_attributes["staticUID"]).encode('utf-8')
+
+    ex_attr_val = extendedAttr_t()
+    ex_attr_val.name = str("validate").encode('utf-8')
+    ex_attr_val.value = str(node.extended_attributes["validate"]).encode('utf-8')
+
+    ex_attr_suid.next = ctypes.pointer(ex_attr_val)
+
+    header.extendedAttr = ctypes.pointer(ex_attr_suid)
+
 
     nodename = str(node.name)
     b_nodename = nodename.encode('utf-8')
@@ -137,7 +160,7 @@ def export_node(node, generate_uuid, out_file):
 
     b_fname = out_file.encode('utf-8')
 
-    print(f"[python]\t{header.amountExtendedAttr=}")
+    # print(f"[python]\t{header.amountExtendedAttr=}")
 
     createBinaryCnode(b_fname, header, b_nodename, b_nodetype, b_nodeuuid, b_nodedescription, b_nodedatatype, b_nodemin,
                       b_nodemax, b_nodeunit, b_nodeallowed, b_nodedefault, b_nodevalidate, children)
