@@ -28,6 +28,8 @@ char* VSSgetDescr(long nodeHandle);
 int VSSgetNumOfAllowedElements(long nodeHandle);
 char* VSSgetAllowedElement(long nodeHandle, int index);
 char* VSSgetUnit(long nodeHandle);
-nodeHeader_t* VSSgetHeader(long nodeHandle);
+// nodeHeader_t* VSSgetHeader(long nodeHandle);
 uint8_t getMaxValidation(uint8_t newValidation, uint8_t currentMaxValidation);
 uint8_t translateToMatrixIndex(uint8_t index);
+
+extendedAttr_t VSSgetExtendedAttr(long nodeHandle);

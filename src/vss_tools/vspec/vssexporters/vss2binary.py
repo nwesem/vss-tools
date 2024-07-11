@@ -14,6 +14,7 @@ import argparse
 import logging
 import ctypes
 import os.path
+import sys
 from typing import Optional
 from vss_tools.vspec.model.vsstree import VSSNode, VSSType
 from vss_tools.vspec.vss2x import Vss2X
@@ -26,22 +27,24 @@ class extendedAttr_t(ctypes.Structure):  # forward declaration
     pass
 
 extendedAttr_t._fields_ = [
+    # ("nameLen", ctypes.c_uint8),
     ("name", ctypes.c_char_p),
+    # ("valueLen", ctypes.c_uint8),
     ("value", ctypes.c_char_p),
-    ("next", ctypes.POINTER(extendedAttr_t)),
+    # ("next", ctypes.POINTER(extendedAttr_t)),
 ]
 
-class nodeHeader_t(ctypes.Structure):
-    _fields_ = [
-        ("amountExtendedAttr", ctypes.c_uint8),
-        ("extendedAttr", ctypes.POINTER(extendedAttr_t)),
-    ]
+# class nodeHeader_t(ctypes.Structure):
+#     _fields_ = [
+#         ("amountExtendedAttr", ctypes.c_uint8),
+#         ("extendedAttr", ctypes.POINTER(extendedAttr_t)),
+#     ]
 
-def createBinaryCnode(fname, header, nodename, nodetype, uuid, description, nodedatatype, nodemin, nodemax, unit, allowed,
-                      defaultAllowed, validate, children):
+def createBinaryCnode(fname, nodename, nodetype, uuid, description, nodedatatype, nodemin, nodemax, unit, allowed,
+                      defaultAllowed, extended_attr, validate, children):
     global _cbinary
-    _cbinary.createBinaryCnode(fname, header, nodename, nodetype, uuid, description, nodedatatype, nodemin, nodemax, unit,
-                               allowed, defaultAllowed, validate, children)
+    _cbinary.createBinaryCnode(fname, nodename, nodetype, uuid, description, nodedatatype, nodemin, nodemax, unit,
+                               allowed, defaultAllowed, extended_attr, validate, children)
 
 
 def allowedString(allowedList):
@@ -67,23 +70,37 @@ def intToHexChar(hexInt):
 
 
 def export_node(node, generate_uuid, out_file):
-    header = nodeHeader_t()
-    header.amountExtendedAttr = len(node.extended_attributes.keys())
+    # # header = nodeHeader_t()
+    # # header.amountExtendedAttr = len(node.extended_attributes.keys())
 
-    # CAUTION: list initialization is important here, otherwise the pointers will be invalid,
-    #  it has to be expliclity named extendedAttr_t also quick initilization like 3 * [extendedAttr_t()] 
-    #  will not work.
-    #  The goal was to use initialize it with amountExtendedAttr * [extendedAttr_t()] but didnt work
-    extended_attributes: list = [extendedAttr_t(), extendedAttr_t(), extendedAttr_t()]
-    for i, (key, value) in enumerate(node.extended_attributes.items()):
-        extended_attributes[i].name = str(key).encode('utf-8')
-        extended_attributes[i].value = str(value).encode('utf-8')
-        if header.amountExtendedAttr > 1 and i < 1:
-            extended_attributes[i].next = ctypes.pointer(extended_attributes[i + 1])
-        else:
-            extendedAttr_t.next = None
+    # # CAUTION: list initialization is important here, otherwise the pointers will be invalid,
+    # #  it has to be expliclity named extendedAttr_t also quick initilization like 3 * [extendedAttr_t()] 
+    # #  will not work.
+    # #  The goal was to use initialize it with amountExtendedAttr * [extendedAttr_t()] but didnt work
+    # extended_attributes: list = [extendedAttr_t(), extendedAttr_t()]#, extendedAttr_t()]
+    # for i, (key, value) in enumerate(node.extended_attributes.items()):
+    #     extended_attributes[i].name = str(key).encode('utf-8')
+    #     extended_attributes[i].value = str(value).encode('utf-8')
+    #     extended_attributes[i].length = sys.getsizeof(extended_attributes[i].name) + sys.getsizeof(extended_attributes[i].value)
+    #     print(f"[vss2bin]\textended_attributes{i}.length={extended_attributes[i].length}")
 
-    header.extendedAttr = ctypes.pointer(extended_attributes[0])
+    #     if i == 0:
+    #         extended_attributes[i].next = None
+    #     else:
+    #         extended_attributes[i-1].next = ctypes.pointer(extended_attributes[i])
+    #         # extended_attributes[i-1].length += extended_attributes[i].length
+
+    # # print(f"{sys.getsizeof(extended_attributes)=}")
+    # # print(f"{sys.getsizeof(extended_attributes[0])=}")
+    # # print(f"{sys.getsizeof(extended_attributes[0].name)=}")
+    # # print(f"{sys.getsizeof(extended_attributes[0].value)=}")
+    # # print(f"{sys.getsizeof(extended_attributes[1])=}")
+    # # print(f"{sys.getsizeof(extended_attributes[1].name)=}")
+    # # print(f"{sys.getsizeof(extended_attributes[1].value)=}")
+
+    # print(f"[vss2bin]\ttotal length ex attr 1+2={extended_attributes[0].length + extended_attributes[1].length}")
+
+    # header.extendedAttr = ctypes.pointer(extended_attributes[0])
 
     nodename = str(node.name)
     b_nodename = nodename.encode('utf-8')
@@ -137,6 +154,13 @@ def export_node(node, generate_uuid, out_file):
         nodeuuid = node.uuid
     b_nodeuuid = nodeuuid.encode('utf-8')
 
+    extended_attr = extendedAttr_t()
+    print(f"[python]\t{sys.getsizeof(extended_attr)=} for node {nodename}")
+    for key, value in node.extended_attributes.items():
+        extended_attr.name = str(key).encode('utf-8')
+        extended_attr.value = str(value).encode('utf-8')
+        break # only support one element for now
+
     if "validate" in node.extended_attributes:
         nodevalidate = node.extended_attributes["validate"]
     b_nodevalidate = nodevalidate.encode('utf-8')
@@ -145,8 +169,8 @@ def export_node(node, generate_uuid, out_file):
 
     # print(f"[python]\t{header.amountExtendedAttr=}")
 
-    createBinaryCnode(b_fname, header, b_nodename, b_nodetype, b_nodeuuid, b_nodedescription, b_nodedatatype, b_nodemin,
-                      b_nodemax, b_nodeunit, b_nodeallowed, b_nodedefault, b_nodevalidate, children)
+    createBinaryCnode(b_fname, b_nodename, b_nodetype, b_nodeuuid, b_nodedescription, b_nodedatatype, b_nodemin,
+                      b_nodemax, b_nodeunit, b_nodeallowed, b_nodedefault, extended_attr, b_nodevalidate, children)
 
     for child in node.children:
         export_node(child, generate_uuid, out_file)
@@ -172,7 +196,7 @@ class Vss2Binary(Vss2X):
 
         _cbinary.createBinaryCnode.argtypes = (
             ctypes.c_char_p, # fname
-            nodeHeader_t,  # header
+            # ctypes.POINTER(nodeHeader_t),  # header
             ctypes.c_char_p, # nodename
             ctypes.c_char_p, # nodetype
             ctypes.c_char_p, # uuid
@@ -183,6 +207,7 @@ class Vss2Binary(Vss2X):
             ctypes.c_char_p, # unit
             ctypes.c_char_p, # allowed
             ctypes.c_char_p, # defaultAllowed
+            extendedAttr_t, # custom structure for extendede attributes
             ctypes.c_char_p, # validate
             ctypes.c_int  # children
         )

@@ -21,8 +21,8 @@
 
 FILE* treeFp;
 
-void writeNodeData(nodeHeader_t header, char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, char* validate, int children) {
-// printf("Header.amountExtendedAttribute=%d, Name=%s, Type=%s, uuid=%s, validate=%s, children=%d, Descr=%s, datatype=%s, min=%s, max=%s Unit=%s, Allowed=%s\n", header.amountOfExtendedAttr, name, type, uuid, validate, children, descr, datatype, min, max, unit, allowed);
+void writeNodeData(char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, extendedAttr_t extendedAttr, char* validate, int children) {
+// printf("Header.amountExtendedAttribute=%d, Name=%s, Type=%s, uuid=%s, validate=%s, children=%d, Descr=%s, datatype=%s, min=%s, max=%s Unit=%s, Allowed=%s\n", header->amountOfExtendedAttr, name, type, uuid, validate, children, descr, datatype, min, max, unit, allowed);
     
     uint8_t nameLen  = (uint8_t)strlen(name);
     uint8_t typeLen = (uint8_t)strlen(type);
@@ -34,23 +34,23 @@ void writeNodeData(nodeHeader_t header, char* name, char* type, char* uuid, char
     uint8_t unitLen = (uint8_t)strlen(unit);
     uint16_t allowedLen = (uint16_t)strlen(allowed);
     uint8_t defaultAllowedLen = (uint8_t)strlen(defaultAllowed);
+    // uint16_t extendedAttrLen = (uint8_t)strlen(extendedAttr.name) + (uint8_t)strlen(extendedAttr.value);
     uint8_t validateLen = (uint8_t)strlen(validate);
     
-    for (int i = 0; i < header.amountExtendedAttr; i++) {
-    //     // printf("[binarytool]\tHeader.amountExtended=%d", header.amountExtendedAttr);
-    //     // printf(", Header.extendedAttr.name=%s", header.extendedAttr->name);
-    //     // printf(", Header.extendedAttr.value=%s\n", header.extendedAttr->value);
+    // for (int i = 0; i < header->amountExtendedAttr; i++) {
+    //     printf("[binarytool]\tHeader.amountExtended=%d", header->amountExtendedAttr);
+    //     printf(", Header.extendedeAttr->name=%s", header->extendedAttr->name);
+    //     printf(", Header.extendedeAttr->value=%s\n", header->extendedAttr->value);
         
-    //     if (header.extendedAttr->next != NULL) {
-    //         header.extendedAttr = header.extendedAttr->next;
+    //     if (header->extendedAttr->next != NULL) {
+    //         header->extendedAttr = header->extendedAttr->next;
     //     }
-    }
+    // }
 
-    uint8_t headerLen = sizeof(nodeHeader_t) + header.amountExtendedAttr * sizeof(struct extendedAttr_t);
-    // printf("size of header=%ld, size of extended attr=%ld\n", sizeof(nodeHeader_t), sizeof(struct extendedAttr_t));
-    // printf("HeaderLen=%d\n", headerLen);
-    fwrite(&headerLen, sizeof(uint8_t), 1, treeFp);
-    fwrite(&header, sizeof(uint8_t)*headerLen, 1, treeFp);
+    // printf("[binarytool]\tsize of header=%ld, size of extended attr=%ld\n", sizeof(nodeHeader_t), sizeof(extendedAttr_t));
+    // printf("[binarytool]\tHeaderLen=%d\n", headerLen);
+    // fwrite(&headerLen, sizeof(uint16_t), 1, treeFp);
+    // fwrite(header, sizeof(uint8_t) * headerLen, 1, treeFp);
 
 
     fwrite(&nameLen, sizeof(uint8_t), 1, treeFp);
@@ -85,6 +85,18 @@ void writeNodeData(nodeHeader_t header, char* name, char* type, char* uuid, char
     if (defaultAllowedLen > 0) {
         fwrite(defaultAllowed, sizeof(char)*defaultAllowedLen, 1, treeFp);
     }
+
+    fwrite(&extendedAttr, sizeof(extendedAttr_t), 1, treeFp);
+    if (extendedAttr.name != NULL && extendedAttr.value != NULL) {
+        uint8_t nameLen = (uint8_t)strlen(extendedAttr.name);
+        uint8_t valueLen = (uint8_t)strlen(extendedAttr.value);
+
+        fwrite(&nameLen, sizeof(uint8_t), 1, treeFp);
+        fwrite(extendedAttr.name, sizeof(char)* strlen(extendedAttr.name), 1, treeFp);
+        fwrite(&valueLen, sizeof(uint8_t), 1, treeFp);
+        fwrite(extendedAttr.value, sizeof(char)* strlen(extendedAttr.value), 1, treeFp);
+    }
+
     fwrite(&validateLen, sizeof(uint8_t), 1, treeFp);
     if (validateLen > 0) {
         fwrite(validate, sizeof(char)*validateLen, 1, treeFp);
@@ -92,13 +104,13 @@ void writeNodeData(nodeHeader_t header, char* name, char* type, char* uuid, char
     fwrite(&children, sizeof(uint8_t), 1, treeFp);
 }
 
-void createBinaryCnode(char*fname, nodeHeader_t header, char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, char* validate, int children) {
+void createBinaryCnode(char*fname, char* name, char* type, char* uuid, char* descr, char* datatype, char* min, char* max, char* unit, char* allowed, char* defaultAllowed, extendedAttr_t extendedAttr, char* validate, int children) {
     treeFp = fopen(fname, "a");
     if (treeFp == NULL) {
         printf("Could not open file=%s for writing of tree.\n", fname);
         return;
     }
-    writeNodeData(header, name, type, uuid, descr, datatype, min, max, unit, allowed, defaultAllowed, validate, children);
+    writeNodeData(name, type, uuid, descr, datatype, min, max, unit, allowed, defaultAllowed, extendedAttr, validate, children);
     fclose(treeFp);
 }
 

@@ -16,22 +16,20 @@ typedef enum {SENSOR=1, ACTUATOR, ATTRIBUTE, BRANCH, STRUCT, PROPERTY } nodeType
 #define MAXALLOWEDELEMENTLEN 64
 typedef char allowed_t[MAXALLOWEDELEMENTLEN];
 
-typedef struct extendedAttr_t extendedAttr_t; // forward declaration needed to point to next attribute
+// typedef struct extendedAttr_t extendedAttr_t; // forward declaration needed to point to next attribute
 
 typedef struct extendedAttr_t {
     char* name;
     char* value;
-    struct extendedAttr_t* next;
 } extendedAttr_t;
 
-typedef struct nodeHeader_t {
-    uint8_t amountExtendedAttr;
-    struct extendedAttr_t* extendedAttr;
-} nodeHeader_t;
+// typedef struct nodeHeader_t {
+//     extendedAttr_t extendedAttr[5];
+// } nodeHeader_t;
 
 typedef struct node_t {
-    uint8_t headerLen;
-    nodeHeader_t* header;
+    // uint16_t headerLen;
+    // nodeHeader_t* header;
     uint16_t nameLen;
     char* name;
     nodeTypes_t type;
@@ -51,6 +49,8 @@ typedef struct node_t {
     allowed_t *allowedDef;
     uint8_t defaultLen;
     char* defaultAllowed;
+    // uint16_t extendedAttrLen;
+    extendedAttr_t extendedAttr;
     uint8_t validate;
     uint8_t children;
     struct node_t* parent;

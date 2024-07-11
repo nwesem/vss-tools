@@ -63,6 +63,8 @@ void showNodeData(long currentNode, int currentChild) {
         //     // }
         // }
 
+        printf("extended attr name = %s, value = %s\n", VSSgetExtendedAttr(currentNode).name, VSSgetExtendedAttr(currentNode).value);
+
         if (VSSgetNumOfChildren(currentNode) > 0)
             printf("Node child[%d]=%s\n", currentChild, VSSgetName(VSSgetChild(currentNode, currentChild)));
 //        for (int i = 0 ; i < VSSgetNumOfAllowedElements(currentNode) ; i++)

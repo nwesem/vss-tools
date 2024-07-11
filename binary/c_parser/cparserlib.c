@@ -351,15 +351,15 @@ char* extractAllowedElement(char* allowedBuf, int elemIndex) {
 
 void populateNode(node_t* thisNode) {
 
-	ret = fread(&thisNode->headerLen, sizeof(uint8_t), 1, treeFp);
-	printf("headerLen = %d\n", thisNode->headerLen);
-	char* headerStr = (char*) malloc(sizeof(char)*(thisNode->headerLen+1)); 
-	ret = fread(headerStr, sizeof(char)*(thisNode->headerLen), 1, treeFp);
-	headerStr[thisNode->headerLen] = '\0';
+	// ret = fread(&thisNode->headerLen, sizeof(uint16_t), 1, treeFp);
+	// printf("headerLen = %d\n", thisNode->headerLen);
+	// char* headerStr = (char*) malloc(sizeof(char)*(thisNode->headerLen+1)); 
+	// ret = fread(headerStr, sizeof(char)*(thisNode->headerLen), 1, treeFp);
+	// headerStr[thisNode->headerLen] = '\0';
 
-	printf("header = %s\n", headerStr);
-	// printf("header ext attr name = %s\n", header->extendedAttr->name);
-	free(headerStr);
+	// printf("header = %s\n", headerStr);
+	// printf("header ext attr name = %s\n", header->extendedAttr.name);
+	// free(headerStr);
 
 	ret = fread(&(thisNode->nameLen), sizeof(uint8_t), 1, treeFp);
 	thisNode->name = (char*) malloc(sizeof(char)*(thisNode->nameLen+1));
@@ -436,6 +436,27 @@ void populateNode(node_t* thisNode) {
 		thisNode->defaultAllowed[thisNode->defaultLen] = '\0';
 	}
 
+	ret = fread(&(thisNode->extendedAttr), sizeof(extendedAttr_t), 1, treeFp);
+	// if (thisNode->extendedAttrLen > 0) {
+	// 	thisNode->extendedAttr = (extendedAttr_t*) malloc(sizeof(extendedAttr_t));
+	// 	ret = fread(thisNode->extendedAttr, sizeof(extendedAttr_t), 1, treeFp);
+	// }
+
+	// uint16_t exAttrNameLen;
+	// ret = fread(&(exAttrNameLen), sizeof(uint16_t), 1, treeFp);
+	// if (exAttrNameLen > 0) {
+	// 	thisNode->extendedAttr.name = (char*) malloc(sizeof(char)*(exAttrNameLen));
+	// 	ret = fread(thisNode->extendedAttr.name, sizeof(char)*exAttrNameLen, 1, treeFp);
+	// 	thisNode->extendedAttr.name[exAttrNameLen] = '\0';
+	// }
+	// uint16_t exAttrValueLen;
+	// ret = fread(&(exAttrValueLen), sizeof(uint16_t), 1, treeFp);
+	// if (exAttrValueLen > 0) {
+	// 	thisNode->extendedAttr.value = (char*) malloc(sizeof(char)*(exAttrValueLen));
+	// 	ret = fread(thisNode->extendedAttr.value, sizeof(char)*exAttrValueLen, 1, treeFp);
+	// 	thisNode->extendedAttr.value[exAttrValueLen] = '\0';
+	// }
+
 	uint8_t validateLen;
 	ret = fread(&validateLen, sizeof(uint8_t), 1, treeFp);
 	if (validateLen > 0) {
@@ -467,8 +488,8 @@ void allowedWrite(char* theAllowed) {
 
 void writeNode(struct node_t* node) {
 
-	fwrite(&(node->headerLen), sizeof(uint8_t), 1, treeFp);
-	fwrite(node->header, sizeof(char) * node->headerLen, 1, treeFp);
+	// fwrite(&(node->headerLen), sizeof(uint8_t), 1, treeFp);
+	// fwrite(node->header, sizeof(char) * node->headerLen, 1, treeFp);
 
 	fwrite(&(node->nameLen), sizeof(uint8_t), 1, treeFp);
 	fwrite(node->name, sizeof(char)*node->nameLen, 1, treeFp);
@@ -522,6 +543,8 @@ void writeNode(struct node_t* node) {
 	if (node->defaultLen > 0) {
 		fwrite(node->defaultAllowed, sizeof(char)*node->defaultLen, 1, treeFp);
 	}
+
+	fwrite(&(node->extendedAttr), sizeof(extendedAttr_t), 1, treeFp);
 
 	char validate[10+1+7+1];  // access control + consent data
 	validateToString(node->validate, (char*)&validate);
@@ -769,6 +792,10 @@ char* VSSgetUnit(long nodeHandle) {
 	return NULL;
 }
 
-nodeHeader_t* VSSgetHeader(long nodeHandle) {
-	return ((nodeHeader_t*)((node_t*)((intptr_t)nodeHandle))->header);
+// nodeHeader_t* VSSgetHeader(long nodeHandle) {
+// 	return ((nodeHeader_t*)((node_t*)((intptr_t)nodeHandle))->header);
+// }
+
+extendedAttr_t VSSgetExtendedAttr(long nodeHandle) {
+	return ((node_t*)((intptr_t)nodeHandle))->extendedAttr;
 }
